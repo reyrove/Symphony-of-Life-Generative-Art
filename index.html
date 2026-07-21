@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Symphony of Life</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="fav.svg">
+  <style>
+    /* --- perfect reset --- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      background: #0a0a0a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+    }
+    
+    #main-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      padding: 20px;
+      gap: 8px;
+    }
+    
+    /* --- title (center top) --- */
+    .title-bar {
+      text-align: center;
+      flex-shrink: 0;
+      padding: 2px 0;
+      width: 100%;
+    }
+    .title-bar .title {
+      font-size: 22px;
+      font-weight: 300;
+      letter-spacing: 8px;
+      color: rgba(255,255,255,0.85);
+      text-transform: uppercase;
+    }
+    .title-bar .title .accent {
+      color: #c9a84c;
+      font-weight: 400;
+    }
+    
+    /* --- canvas container (image holder) --- */
+    #canvas-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 0;
+      padding: 0 10px;
+      position: relative;
+      background: #0a0a0a;
+    }
+    
+    /* --- image wrapper to maintain consistent aspect ratio --- */
+    .image-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      aspect-ratio: 1 / 1;
+      max-height: 100%;
+    }
+    
+    #slide-image {
+      display: block;
+      box-shadow: 0 0 80px rgba(0,0,0,0.9);
+      image-rendering: auto;
+      touch-action: none;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 2px;
+      transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease, border 0.5s ease;
+      opacity: 1;
+      border: none;
+    }
+    #slide-image.fade {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    
+    /* --- SHIRT MOCKUP --- */
+    #shirt-mockup {
+      display: none;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 2px;
+      box-shadow: 0 0 80px rgba(0,0,0,0.9);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #shirt-mockup.active {
+      display: block;
+      animation: fadeIn 0.6s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    /* --- bottom bar --- */
+    .bottom-bar {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    
+    .controls-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .controls {
+      color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.04);
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Roboto, Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      border: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: all 0.3s ease;
+      letter-spacing: 0.8px;
+      touch-action: manipulation;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .controls:hover {
+      color: rgba(255,255,255,0.95);
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+    }
+    .controls:active {
+      transform: scale(0.95);
+    }
+    .controls .key {
+      color: rgba(255,255,255,0.5);
+      font-weight: 300;
+    }
+    .controls .sep {
+      color: rgba(255,255,255,0.15);
+      margin: 0 4px;
+    }
+    
+    /* --- shirt/apparel button (gold) --- */
+    .controls.shirt-btn {
+      border-color: rgba(201, 168, 76, 0.2);
+      color: rgba(201, 168, 76, 0.7);
+      letter-spacing: 1px;
+    }
+    .controls.shirt-btn:hover {
+      border-color: rgba(201, 168, 76, 0.4);
+      color: #c9a84c;
+      background: rgba(201, 168, 76, 0.06);
+    }
+    .controls.shirt-btn.active {
+      border-color: rgba(201, 168, 76, 0.5);
+      color: #c9a84c;
+      background: rgba(201, 168, 76, 0.08);
+    }
+    .controls.shirt-btn .icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+    
+    /* --- STORY BUTTON (Gold, matches apparel) --- */
+    .story-btn {
+      border-color: rgba(201, 168, 76, 0.15);
+      color: rgba(201, 168, 76, 0.6);
+      letter-spacing: 1px;
+      background: rgba(201, 168, 76, 0.03);
+    }
+    .story-btn:hover {
+      border-color: rgba(201, 168, 76, 0.3);
+      color: #c9a84c;
+      background: rgba(201, 168, 76, 0.06);
+    }
+    .story-btn .icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+    
+    /* --- info row --- */
+    .info-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      color: rgba(255,255,255,0.3);
+      font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      flex-wrap: wrap;
+      padding: 2px 0;
+    }
+    .info-row .info-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.02);
+    }
+    .info-row .label {
+      color: rgba(255,255,255,0.25);
+      font-weight: 300;
+    }
+    .info-row .value {
+      color: rgba(255,255,255,0.6);
+      font-weight: 400;
+    }
+    
+    /* --- description --- */
+    .description {
+      display: block;
+      text-align: center;
+      color: rgba(255,255,255,0.25);
+      font-size: 8px;
+      letter-spacing: 1.2px;
+      line-height: 1.8;
+      padding: 2px 10px;
+      font-weight: 300;
+      max-width: 500px;
+      width: 100%;
+      text-transform: uppercase;
+    }
+    .description .highlight {
+      color: rgba(255,255,255,0.4);
+    }
+    .description .sep {
+      color: rgba(255,255,255,0.08);
+      margin: 0 4px;
+    }
+    
+    /* ============================================
+       MODAL STYLES
+    ============================================ */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .modal-content {
+      max-width: 700px;
+      width: 100%;
+      max-height: 80vh;
+      background: rgba(20,20,20,0.95);
+      border-radius: 20px;
+      padding: 40px 40px 30px;
+      border: 1px solid rgba(201,168,76,0.15);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 80px rgba(201,168,76,0.05);
+      position: relative;
+      transform: scale(0.95) translateY(20px);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    
+    .modal-overlay.open .modal-content {
+      transform: scale(1) translateY(0);
+    }
+    
+    /* Modal scrollbar styling */
+    .modal-content::-webkit-scrollbar {
+      width: 3px;
+    }
+    .modal-content::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.02);
+      border-radius: 10px;
+    }
+    .modal-content::-webkit-scrollbar-thumb {
+      background: rgba(201,168,76,0.3);
+      border-radius: 10px;
+    }
+    .modal-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(201,168,76,0.5);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .modal-title {
+      color: #c9a84c;
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+    
+    .modal-title .work-number {
+      color: rgba(255,255,255,0.2);
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-left: 8px;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.3);
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .modal-close:hover {
+      color: #c9a84c;
+      transform: rotate(90deg);
+    }
+    
+    .modal-body {
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+      line-height: 2.2;
+      letter-spacing: 0.5px;
+      font-family: 'Georgia', serif;
+      font-style: italic;
+      padding: 4px 0;
+    }
+    
+    .modal-body .quote-start,
+    .modal-body .quote-end {
+      color: rgba(201,168,76,0.25);
+      font-size: 28px;
+      font-family: 'Georgia', serif;
+      line-height: 0;
+      display: inline-block;
+    }
+    .modal-body .quote-start {
+      margin-right: 6px;
+    }
+    .modal-body .quote-end {
+      margin-left: 6px;
+    }
+    
+    .modal-footer {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255,255,255,0.15);
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    
+    .modal-footer .dots {
+      color: rgba(201,168,76,0.2);
+      letter-spacing: 4px;
+    }
+    
+    /* --- responsive modal --- */
+    @media (max-width: 768px) {
+      .modal-content {
+        padding: 30px 25px 25px;
+        max-width: 90%;
+      }
+      .modal-title {
+        font-size: 14px;
+      }
+      .modal-body {
+        font-size: 12px;
+        line-height: 2;
+      }
+      .modal-body .quote-start,
+      .modal-body .quote-end {
+        font-size: 22px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .modal-content {
+        padding: 25px 20px 20px;
+        border-radius: 16px;
+        max-width: 95%;
+        max-height: 85vh;
+      }
+      .modal-title {
+        font-size: 12px;
+        letter-spacing: 2px;
+      }
+      .modal-body {
+        font-size: 11px;
+        line-height: 1.9;
+      }
+      .modal-body .quote-start,
+      .modal-body .quote-end {
+        font-size: 18px;
+      }
+      .modal-close {
+        font-size: 22px;
+      }
+    }
+    
+    /* --- responsive base --- */
+    @media (max-width: 1024px) {
+      #main-container { padding: 16px; gap: 6px; }
+      .title-bar .title { font-size: 20px; letter-spacing: 6px; }
+      .controls { font-size: 10px; padding: 7px 16px; min-height: 34px; }
+      .info-row { font-size: 8.5px; gap: 12px; }
+      .info-row .info-item { padding: 2px 10px; }
+      .description { font-size: 7.5px; letter-spacing: 1px; }
+    }
+    @media (max-width: 768px) {
+      #main-container { padding: 12px; gap: 5px; }
+      .title-bar .title { font-size: 17px; letter-spacing: 5px; }
+      #canvas-container { padding: 0 6px; }
+      .controls { font-size: 9px; padding: 6px 14px; min-height: 32px; letter-spacing: 0.6px; }
+      .controls-row { gap: 6px; }
+      .info-row { font-size: 8px; gap: 10px; }
+      .info-row .info-item { padding: 2px 8px; }
+      .description { font-size: 7px; letter-spacing: 0.8px; padding: 2px 6px; }
+      .controls.shirt-btn .icon { font-size: 12px; }
+      .story-btn .icon { font-size: 12px; }
+    }
+    @media (max-width: 480px) {
+      #main-container { padding: 8px; gap: 4px; }
+      .title-bar .title { font-size: 14px; letter-spacing: 4px; }
+      #canvas-container { padding: 0 4px; }
+      .controls { font-size: 8px; padding: 5px 12px; min-height: 28px; border-radius: 24px; letter-spacing: 0.4px; }
+      .controls-row { gap: 4px; }
+      .info-row { font-size: 7px; gap: 8px; }
+      .info-row .info-item { padding: 2px 6px; gap: 4px; }
+      .description { font-size: 6.5px; letter-spacing: 0.6px; padding: 2px 4px; line-height: 1.6; }
+      .controls.shirt-btn .icon { font-size: 11px; }
+      .story-btn .icon { font-size: 11px; }
+    }
+    @media (max-width: 380px) {
+      #main-container { padding: 6px; gap: 3px; }
+      .title-bar .title { font-size: 12px; letter-spacing: 3px; }
+      #canvas-container { padding: 0 2px; }
+      .controls { font-size: 7px; padding: 4px 10px; min-height: 26px; border-radius: 20px; }
+      .info-row { font-size: 6.5px; gap: 6px; }
+      .info-row .info-item { padding: 1px 5px; border-radius: 14px; }
+      .description { font-size: 6px; letter-spacing: 0.5px; padding: 1px 3px; }
+      .controls.shirt-btn .icon { font-size: 10px; }
+      .story-btn .icon { font-size: 10px; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      #main-container { padding: 10px 20px; gap: 4px; flex-direction: row; flex-wrap: wrap; }
+      .title-bar { width: 100%; flex-shrink: 0; }
+      .title-bar .title { font-size: 16px; letter-spacing: 4px; }
+      #canvas-container { flex: 1; min-height: 0; height: 100%; padding: 0 8px; }
+      .image-wrapper { aspect-ratio: auto; height: 100%; width: auto; }
+      .bottom-bar { width: auto; max-width: 180px; flex-shrink: 0; gap: 4px; padding: 0 4px; }
+      .controls { font-size: 8px; padding: 5px 12px; min-height: 28px; letter-spacing: 0.4px; }
+      .controls-row { flex-direction: column; gap: 4px; }
+      .info-row { font-size: 7px; gap: 6px; flex-direction: column; align-items: stretch; }
+      .info-row .info-item { padding: 2px 8px; justify-content: center; }
+      .description { font-size: 6px; max-width: 160px; padding: 1px 4px; line-height: 1.4; letter-spacing: 0.5px; }
+    }
+    @media (orientation: landscape) and (max-height: 380px) {
+      #main-container { padding: 6px 12px; gap: 3px; }
+      .title-bar .title { font-size: 13px; letter-spacing: 3px; }
+      #canvas-container { padding: 0 4px; }
+      .bottom-bar { max-width: 140px; gap: 3px; }
+      .controls { font-size: 7px; padding: 4px 10px; min-height: 24px; border-radius: 16px; }
+      .info-row { font-size: 6px; gap: 4px; }
+      .info-row .info-item { padding: 1px 6px; }
+      .description { font-size: 5.5px; max-width: 120px; padding: 1px 3px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .controls, #slide-image, .modal-overlay, .modal-content { transition: none; }
+      #slide-image.fade { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="main-container">
+  <!-- TITLE -->
+  <div class="title-bar">
+    <div class="title"><span class="accent">Symphony</span> of Life</div>
+  </div>
+
+  <!-- IMAGE CONTAINER -->
+  <div id="canvas-container">
+    <div class="image-wrapper">
+      <img id="slide-image" src="" alt="p5.js artwork">
+      <img id="shirt-mockup" src="Symphony-of-Life.jpg" alt="Symphony of Life on T-Shirt" />
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <!-- CONTROLS ROW -->
+    <div class="controls-row">
+      <div class="controls" id="controlsBar">
+        <span class="key">●</span> next work <span class="sep">—</span> <span class="key">S</span> save
+      </div>
+      <div class="controls shirt-btn" id="shirtToggle">
+        <span class="icon">◷</span> apparel
+      </div>
+      <div class="controls story-btn" id="storyBtn">
+        <span class="icon">✧</span> story
+      </div>
+    </div>
+
+    <!-- INFO ROW -->
+    <div class="info-row">
+      <div class="info-item">
+        <span class="label">work</span>
+        <span class="value" id="workName">Crooked Buildings</span>
+      </div>
+      <div class="info-item">
+        <span class="label">#</span>
+        <span class="value" id="workIndex">1 / 12</span>
+      </div>
+    </div>
+
+    <!-- DESCRIPTION -->
+    <div class="description">
+      <span class="highlight">generative art</span>
+      <span class="sep">·</span>
+      <span class="highlight">p5.js</span>
+      <span class="sep">·</span>
+      <span class="highlight">12 works</span>
+      <span class="sep">·</span>
+      <span class="highlight">slide show</span>
+      <span class="sep">·</span>
+      <span class="highlight">with stories</span>
+      <span class="sep">·</span>
+      <span class="highlight">apparel ready</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================
+     MODAL
+============================================ -->
+<div class="modal-overlay" id="storyModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span id="modalWorkName">Crooked Buildings</span>
+        <span class="work-number" id="modalWorkNumber">I</span>
+      </div>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <span class="quote-start">"</span>
+      <span id="modalStoryText">Loading story...</span>
+      <span class="quote-end">"</span>
+    </div>
+    <div class="modal-footer">
+      <span>✦ symphony of life</span>
+      <span class="dots">···</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // --- LIST OF 12 IMAGES WITH FULL STORIES ---
+    const works = [
+      { 
+        name: 'Crooked Buildings', 
+        file: 'crooked-buildings.jpg',
+        story: 'Amid the bustling crowd, I found solace in the charm of crooked buildings that seemed to speak a language of their own, a silent conversation with nature\'s hues. In the lonely corners, I discovered a canvas of colors, each shade telling a story, creating a unique melody in the symphony of urban life. This is made with random rectangles by p5.js.'
+      },
+      { 
+        name: 'Sunset Serenade', 
+        file: 'sunset-serenade.gif',
+        story: 'In the symphony of life, as the sun bids adieu, a sunset serenade, painting skies anew. Ocean waves whisper in a tranquil rhyme, calm waters mirror a love that transcends time. Memories linger, like echoes in the breeze, peaceful reflections beneath rustling trees. Thoughts, like leaves, gently fall and rise, in the quietude, where the heart often lies. In the canvas of silence, feelings unfold, a harmony of emotions, a story untold. Nature\'s embrace, a tranquil balm, as thoughts and feelings create a soothing calm. This is made with coding in p5js. First I made a pattern then exported it as an image. In next step I made a gif with noise function and used that image as a background of my gif.'
+      },
+      { 
+        name: 'Tree\'s Silhouette', 
+        file: 'trees-silhouette.jpg',
+        story: 'Random triangles, a geometric spree, a tree\'s silhouette, nature\'s decree. Colors intertwine, a vibrant ballet, in the canvas of life, what role do I play? Meaning of life, a story to unfold, in the fabric of existence, a tale is told. Long is the journey, a river\'s flow, amidst the questions, "Is this me?" may grow. Dreams paint skies, reality to rove, in the heart\'s landscape, a symphony of love. Amidst the branches, where stories gleam, in the dance of life, do we dare to dream? This is made by coding in p5js. At first I made a background with random triangles. Then exported it as an image. I made a tree with branch function and used the image as the background.'
+      },
+      { 
+        name: 'Maya', 
+        file: 'maya.jpg',
+        story: 'Maya, a wisp of a girl with eyes like moss, stood mesmerized by the ancient oak in her grandmother\'s garden. Its gnarled branches clawed at the sky, each wrinkle on its bark whispering tales of bygone seasons. "Life is like a tree," Grandma Nila rasped, her voice soft as leaves rustling. "We start as fragile seedlings, rooted in love and nurtured by care." Years danced by like flitting butterflies. Maya sprouted, her branches reaching for knowledge, her leaves unfurling with laughter and dreams. She weathered storms of doubt, shed tears like falling leaves, and basked in sunshine moments that bloomed like vibrant flowers. Through it all, her roots, the values Nila instilled, held her firm. One day, a storm raged, uprooting her dreams. Tears streamed down her face, mirroring the rain lashing the oak. But as the storm subsided, a ray of hope, like sunlight filtering through leaves, peeked through. The oak, though battered, stood tall, its resilience whispering strength. Maya found her own, her spirit rising like the morning mist. She grew taller, her branches laden with experiences, some sweet, some bitter. Like the oak, she offered shade to others, her leaves rustling with stories, her heart a haven for weary souls. Seasons changed, wrinkles etched her face, yet her eyes, like the oak\'s enduring core, sparkled with wisdom. One crisp autumn day, a young girl, eyes wide with wonder, stood beneath the oak, now Maya\'s. "Life is like a tree," Maya whispered, her voice a gentle breeze. "Remember, little one, even in winter, spring awaits." The girl smiled, understanding blooming in her eyes, as Maya, like the majestic oak, prepared for her final rest, knowing her essence, like falling leaves, would nourish the ground for new life to sprout. This is made by coding in p5js. I wrote four different functions with the names of branch1, branch2, branch3, branch 4. Then call them in draw function to generate several different random lines with different colors.'
+      },
+      { 
+        name: 'Azure\'s Journey', 
+        file: 'azures-journey.jpg',
+        story: 'Azure was unlike any other fish in the coral reef. While his scales shimmered the same vibrant blue as his brethren, his heart harbored a curious sadness. He loved the sea, its playful currents, the kaleidoscope of life that swirled around him, yet a melancholic undercurrent tugged at his soul. He\'d race with the clownfish, weave through forests of kelp, and chase shimmering schools of sardines. But amidst the joy, a strange yearning gnawed at him. He\'d stare longingly at the surface, the sun painting shimmering patterns on the water, a world beyond his grasp. One day, an old hermit crab, wise and wrinkled, noticed Azure\'s melancholy. "Little one," he rasped, "why the long face in such a vibrant sea?" Azure confessed his yearning, the feeling of being incomplete. The crab chuckled, a dry rasping sound. "The sea is vast, little fish, but it\'s not all there is. Look beyond the surface, and you might find the missing piece of your heart." Azure, fueled by newfound hope, practiced leaping higher, his powerful tail propelling him closer to the sun. One day, with a final burst, he broke through the water\'s surface. Gasping, he found himself in a world of dazzling light and unfamiliar sounds. He saw birds with wings of painted silk, felt the caress of warm air, and heard the gentle whisper of the wind. A tear rolled down his cheek, a tear of bittersweet joy. He wasn\'t meant for this world, yet the glimpse had filled a void he hadn\'t known existed. He returned to the sea, forever changed. His sadness remained, but it was now laced with acceptance and a newfound appreciation for the beauty of his own world, a world he now saw with a richer, fuller heart. Azure continued to swim, his scales flashing blue, a constant reminder of his journey, a testament to the beauty found not just in reaching for the unknown, but also in cherishing the world you already call home. This story of Azure, the blue fish with a melancholic heart, was brought to life using p5.js, a creative coding platform. Lines of code wove the vibrant coral reef, playful fish, and Azure\'s yearning gaze into a visual narrative of his journey. As Azure leaped through the code-crafted waves, his longing for the unseen world resonated with viewers. The p5.js canvas became a window into his emotions, showcasing the beauty and complexity of his inner world. Through this story, we are reminded that even within the limitations of our own realities, there is a universe of experiences waiting to be discovered. And sometimes, the most profound journeys begin with a single line of code. Created with p5.js: A language for creative coding.'
+      },
+      { 
+        name: 'Silent Dance', 
+        file: 'silent-dance.jpg',
+        story: 'In the heart of a sprawling meadow, stood a solitary oak, his branches reaching towards the heavens like gnarled fingers. Unlike his brethren, who whispered secrets to the wind and sheltered playful creatures, the oak stood alone, his heart heavy with an unnamable longing. Every evening, as the sun dipped below the horizon, the sky would transform into a breathtaking spectacle. Streaks of fiery orange, molten gold, and delicate rose would paint the canvas above, igniting a spark within the oak\'s ancient soul. He\'d stand transfixed, his leaves rustling in a silent serenade, yearning to touch the vibrant hues that danced beyond his reach. He dreamt of whispering sweet nothings to the clouds, of feeling the warmth of the setting sun kiss his bark. He imagined the sky, vast and ever-changing, mirroring the emotions that swirled within him – the fiery passion of a summer sunset, the melancholic blues of a twilight sky, the serene peace of a starlit night. One particularly fiery evening, as the sky blazed with an intensity that took his breath away, the oak dared to confess his love. He stretched his branches towards the heavens, his leaves trembling with the weight of his unspoken affection. "Oh, glorious sky," he whispered, his voice carried by the gentle breeze, "your beauty consumes me. Your ever-changing moods echo the depths of my soul. I yearn to be a part of your tapestry, to feel your warmth upon my bark." A hush fell over the meadow. The wind stilled, and the birdsong ceased. Then, as if in response, a single cloud detached itself from the fiery expanse, drifting towards the oak. It swirled around his branches, its touch cool and fleeting, yet filled with an undeniable tenderness. The oak trembled, a surge of joy coursing through his ancient roots. Though their love remained a silent dance, a connection had been forged between the lonely tree and his celestial beloved. He knew, in that moment, that even in solitude, one could find solace in the beauty of the world, and love could blossom in the most unexpected places. From that day on, the oak continued to watch the sky with a newfound appreciation. He no longer felt alone, for his heart was filled with the memory of the cloud\'s touch, a reminder of the love that transcended the boundaries of earth and sky. Made by p5.js. first I wrote a function for the background and exported it as an image. then, I made a tree with writing a branch function and used the image as a background.'
+      },
+      { 
+        name: 'Whispers of the World', 
+        file: 'whispers-of-the-world.gif',
+        story: 'The old woman sat by the window, the setting sun casting long shadows across her wrinkled face. A sigh escaped her lips, carrying with it a lifetime of memories and unspoken desires. "I wanna see you," she whispered, her voice barely audible. It wasn\'t about a physical presence, not anymore. She yearned for the warmth of laughter, the echo of shared dreams, the comfort of a hand in hers. She longed for the feeling of belonging, of being truly known and understood. She closed her eyes, picturing faces from the past, their smiles fading like photographs bleached by time. Some were lost to distance, others to the inevitable march of life. Yet, the ache in her heart remained, a testament to the connections that transcended physicality. A tear traced a path down her cheek, a silent tribute to what she had and what she had lost. But amidst the sadness, a spark flickered within her. The desire to see and feel wasn\'t about the past, but about the present. She looked at the vibrant colors of the sunset, a reminder of the beauty that still surrounded her. She listened to the chirping of crickets, a melody of life in the twilight. These small moments, these connections to the world, were enough. With newfound resolve, she wiped away her tears. "I can\'t see you," she whispered, her voice stronger now, "but I can feel you. You\'re in the warmth of the sun, the song of the birds, the laughter of children playing outside." She opened her eyes, gazing at the world with renewed appreciation. The feeling of isolation may not vanish entirely, but within it, she found a different kind of connection, a sense of belonging to something larger than herself. And that, she realized, was enough. This is a code art that made by coding in p5.js. background is an image that is created with some random circles. Also used text function for writing the text. With the help of p5.creatsloop library, I set up the canvas with createloop function to make a gif with noise radius of 0.3. then I drew some ellipses, rectangles with "for" loops with different colors. Finally exported it as a gif. P5.createloop Is a p5.jd Libra that Creates animation loops with noise and GIF exports in one line of code.'
+      },
+      { 
+        name: 'Weavers of Destiny', 
+        file: 'weavers-of-destiny.jpg',
+        story: 'Beneath the watchful gaze of a star-dusted night sky, two owls, Luna and Orion, perched on a tangled mess of brightly colored yarns. The moon, a luminous pearl, cast an ethereal glow, illuminating their purple feathers, usually hidden in the shadows of day. Luna, her eyes like molten gold, gazed up at Orion, his amber orbs reflecting the warmth of the moon. They weren\'t just owls; they were weavers of destiny, their every flight weaving threads of chance and fate into the tapestry of life. But tonight, their wings were still, their focus solely on each other. "The humans call this \'love,\'" Luna whispered, her voice soft as the rustle of leaves. Orion dipped his head, nuzzling his beak against hers. "It feels like a thousand sunsets woven into one." They had witnessed countless love stories unfold, guiding them with gentle nudges in the right direction, ensuring their paths intersected. But their own love was a different story, a forbidden melody woven into the fabric of existence, hidden from the very beings they guided. Luna traced a claw lightly across the vibrant yarn beneath them, each color representing an unknown future. "These threads, they hold countless possibilities," she sighed, a hint of longing tinged with fear in her voice. Sensing her unease, Orion nestled closer. "We are but threads in the grand tapestry, Luna. Our love may be unconventional, but it too is woven into the fabric of our existence." He pointed his beak towards a single, shimmering thread of silver that intertwined with their own. "This thread, Luna, it binds us together, defying all odds." Luna felt a surge of warmth bloom in her chest. Though their love was a secret melody, hidden from the world they shaped, it was a beautiful, unique harmony, woven into the very essence of their being. As the night deepened, they sat in comfortable silence, their love story a silent symphony played beneath the watchful gaze of the moon. They were not just weavers of destiny, but also threads in the grand tapestry, their love a testament to the unexpected beauty found amidst the complexities of fate. Made by coding in p5.js. I drew some bezier curves with different colors and same stroke weights with the help of p5.bezier library. Then I wrote a function for drawing owl. Then I called the function to draw to owls.'
+      },
+      { 
+        name: 'Hexa\'s Legacy', 
+        file: 'hexas-legacy.jpg',
+        story: 'In a world shrouded in cool, blue light, lived a lone inventor named Hexa. Their workshop hummed with the tireless whirring of gears and the gentle clinking of metal against metal. Hexa was obsessed with patterns, their keen eyes searching for order and beauty in the chaos of the world. One day, as the afternoon sun bathed the workshop in a golden glow, Hexa stumbled upon a peculiar discovery. They were tinkering with a contraption of gears and cogs, when a flash of inspiration struck. With a twist of a knob and a flick of a lever, the machine whirred to life, its metallic arms weaving a mesmerizing dance. It was a dance of perfect hexagons, interlocking and swirling in a never-ending cycle. Hexa watched in awe, captivated by the intricate pattern. The hexagons seemed to possess a life of their own, their vibrant colors shifting and changing with each revolution. They saw in the pattern a reflection of the universe, a tapestry of interconnected elements forming a grand, harmonious whole. From that day on, Hexa devoted themself to perfecting the machine, tirelessly experimenting with different colors and shapes. Soon, their workshop overflowed with hexagonal creations: shimmering mobiles, intricate sculptures, and mesmerizing tapestries. Each piece hummed with the same life force, a testament to the beauty and order that resided within the simplest of shapes. News of Hexa\'s creations spread far and wide. People from all corners of the world flocked to their workshop, drawn by the mesmerizing patterns. Hexa\'s hexagons became a symbol of hope and unity, reminding everyone that even in the face of chaos, beauty and order can prevail. And so, Hexa\'s legacy lived on, not in grand monuments or towering statues, but in the quiet hum of their workshop and the dazzling dance of their hexagons, casting a light of wonder and inspiration for generations to come. This is a hexagonal pattern that is made by coding in p5js. First, I wrote a motif class then use display to show every motif. I used vertex function to draw motif. In set up, I calculated the horizontal and vertical distances between motifs and the number of columns and rows for drawing pattern. Finally in draw function, I filled every odd and even rows and columns with different colors.'
+      },
+      { 
+        name: 'Secret Labyrinth', 
+        file: 'secret-labyrinth.jpg',
+        story: 'Ava squinted through the dense foliage, her heart hammering a frantic rhythm against her ribs. How long had she been lost? It felt like days, but more likely it was hours. Time seemed to stretch and warp in this primal wilderness, the endless green canopy filtering the sunlight into an emerald twilight. She had been so focused on the rare four-leaf clover, a symbol of luck in her grandmother\'s stories, that she hadn\'t noticed the sun begin its descent. Now, the once-familiar path was a forgotten memory. Panic gnawed at the edges of her mind, a cold serpent coiling tighter with every rustle of leaves. Exhausted, Ava sank down at the base of a moss-covered oak, its gnarled branches clawing at the sky like ancient fingers. Tears welled in her eyes, blurring the vibrant green around her. Despair threatened to consume her, but then she spotted it - a faint, circular pattern etched into the earth beside her. It was a ring of stones, weathered smooth by time, with a single clover, a perfect four-leafed one, nestled in the center. A jolt of adrenaline shot through her. Was this a sign? A message from her grandmother, a woman who had spent her childhood exploring these very woods? Emboldened, Ava traced the circle with her finger, a strange sense of calm washing over her. She stood up, a newfound determination etched on her face. The forest, once a menacing labyrinth, now seemed to hold the secrets to her escape. Following an instinct she couldn\'t explain, Ava started walking. She looked for repeating patterns, shapes etched on rocks, or clusters of wildflowers – anything that might hold a clue. The forest floor, a jumbled mess moments ago, began to reveal itself as a language waiting to be deciphered. As dusk settled, casting long shadows between the trees, Ava stumbled upon a familiar sight – a weathered wooden signpost pointing towards the direction of her village. Relief flooded her, warm and sweet. She had found her way back, not through the well-worn path, but through a hidden language whispered by the forest itself. The experience left an indelible mark on Ava. The forest, once a place of fear, became a place of wonder and respect. She learned that sometimes getting lost is the only way to truly find yourself, and that even in the heart of the wilderness, there can be guidance, if you know where to look. Made by coding in p5.js. I used vertex function to specify the vertex coordinates for lines then put it in beginShape. Also I rotated the scene with -90 degrees in both x & y directions. I used different colors for filling and stroke of my shape.'
+      },
+      { 
+        name: 'Polytopia', 
+        file: 'polytopia.jpg',
+        story: 'In the whimsical realm of Polytopia, where shapes ruled supreme, resided Pip, a circle unlike any other. Unlike his brethren content with simply rolling around, Pip yearned for a world brimming with fantastical forms, a world like the legendary realm of the Circularcus. Tales of the Circularcus spoke of a magnificent spectacle – a place where squares juggled spheres, triangles transformed into daring tightropes, and cones balanced precariously on the points of stars. Pip dreamt of witnessing such marvels, a dream that fueled his discontent with Polytopia\'s rigid uniformity. One starlit night, Pip stumbled upon a peculiar sight – a lone pentagon, its edges frayed and dusty. The pentagon, once a renowned acrobat from the Circularcus, had been exiled for attempting a shape-shifting routine deemed too unorthodox. Pip, mesmerized by the tales of the wondrous circus, hatched a daring plan. Together, they embarked on a perilous journey to the Circularcus. They traversed treacherous terrains of jagged hexagons and navigated through valleys carved by sharp trapezoids. Pip, with his smooth rolling ability, proved adept at navigating treacherous slopes, while the pentagon, despite its injury, used its remaining sharp edge to cut through obstacles. Finally, after weeks of struggle, they reached the dazzling entrance of the Circularcus. A kaleidoscope of shapes greeted them – trapezoids twirled through hoops, cones performed daring balancing acts, and cubes juggled spheres in a mesmerizing display. However, a shadow loomed over the joyous spectacle. The Ringmaster, a tyrannical dodecagon, enforced a strict code of conformity, outlawing any shape-shifting performances. Inspired by the pentagon\'s bravery and his own yearning for a world of creative expression, Pip decided to defy the Ringmaster. He rolled into the center ring, captivating the audience with his mesmerizing spins and breathtaking leaps. The pentagon, its spirit rekindled, joined Pip, its remaining edge morphing into a dazzling array of shapes, defying the rigid rules of the Circularcus. The audience, enthralled by the duo\'s performance, erupted in a thunderous applause. The Ringmaster, however, was enraged. But before he could banish them, the cheers of the crowd grew louder. Inspired by Pip and the pentagon\'s courage, other performers began incorporating shape-shifting elements into their acts, transforming the once-rigid spectacle into a vibrant display of creativity. Overwhelmed by the outpouring of support, the Ringmaster reluctantly conceded. The Circularcus, once a place of stifling uniformity, embraced the joy of transformation. Pip, the little circle with a big dream, had not only witnessed the wonders of the Circularcus but had also inspired a revolution, proving that even in a world of shapes, there was room for a touch of magic. Made by coding in p5.js. I created a canvas with size 600 × 600 pixels. I created a class that takes 3 arguments that represent the position of my shapes. also I wrote a function for drawing random shapes such as rectangles, triangles and quads with random colors on canvas.'
+      },
+      { 
+        name: 'Remy and Ollie', 
+        file: 'remy-and-ollie.jpg',
+        story: 'In the ever-flowing river of the bloodstream, two blood cells, Remy (red) and Ollie (orange), bumped shoulders amidst the throng. "Easy there, newbie," Remy chuckled, a veteran with hundreds of trips under his flexible membrane. Ollie, fresh from the bone marrow, sputtered, "Whoa, this is some current! Where are we even headed?" Remy grinned, "Right ventricle, first. Gotta pick up some fresh oxygen from the lungs." Their journey was a wild ride. They squeezed through narrow capillaries, dodged white blood cell sentries, and even navigated a particularly aggressive sneeze that sent them tumbling. As they approached the lungs, however, Ollie noticed a detour. A smaller vein branched off, leading towards a dimly lit area. "Where\'s that going?" Ollie asked, his orange hue flickering with curiosity. "That, my friend," Remy explained, his voice a touch hushed, "is the Spleen Graveyard. Old, worn-out cells get recycled there." A shiver ran through Ollie. He\'d heard whispers about the Spleen, a place of no return. Suddenly, a jolt. A large white blood cell, patrolling the area, bumped into them, sending them careening off course. They landed, teetering on the edge of the narrow vein leading to the Spleen. Remy reacted instinctively. With a powerful push, he propelled Ollie back towards the main stream. "Go! I\'ll hold him off!" Panic seized Ollie. He wanted to stay, but the current was strong, pulling him away. He watched in horror as Remy was swept into the dark vein, a lone red dot disappearing into the gloom. Guilt gnawed at Ollie as he continued his journey. He delivered his oxygen cargo, the feeling hollow. He missed Remy\'s gruff humor and the camaraderie of their short time together. Days turned into weeks. Stronger, wiser now, Ollie found himself near the Spleen again. This time, something was different. A faint red glow emanated from within. Hesitantly, he squeezed through a small opening. There, in the heart of the Spleen, he saw Remy. Not worn out, but transformed. He was a macrophage now, a powerful white blood cell, engulfing harmful bacteria. "Remy?" Ollie stammered. Remy, his voice deeper now, chuckled. "Seems the Spleen needed a little extra muscle. Guess my near miss gave me a new purpose." Relief washed over Ollie. He understood now. The Spleen wasn\'t just a graveyard; it was a place of transformation, where even the seemingly expendable could find a new way to serve the body. From then on, Ollie carried the memory of his friend. He knew their journey, though brief, had a deeper meaning. Every red blood cell, no matter how young or seemingly insignificant, held the potential for extraordinary service within the grand symphony of life. Made by coding in p5.js. the code creates a branching tree-like structure with red ellipses at the branching points. The use of recursion (calling the functions within themselves) and random rotations create a unique and organic appearance.'
+      }
+    ];
+
+    // Roman numerals for chapter display
+    const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+    // --- state ---
+    let currentIndex = 0;
+    let apparelMode = false;
+    
+    const imgElement = document.getElementById('slide-image');
+    const shirtMockup = document.getElementById('shirt-mockup');
+    const workNameSpan = document.getElementById('workName');
+    const workIndexSpan = document.getElementById('workIndex');
+    const controlsBar = document.getElementById('controlsBar');
+    const shirtToggle = document.getElementById('shirtToggle');
+    const storyBtn = document.getElementById('storyBtn');
+
+    // Modal elements
+    const modalOverlay = document.getElementById('storyModal');
+    const modalClose = document.getElementById('modalClose');
+    const modalWorkName = document.getElementById('modalWorkName');
+    const modalWorkNumber = document.getElementById('modalWorkNumber');
+    const modalStoryText = document.getElementById('modalStoryText');
+
+    // --- load image with fade ---
+    function loadImage(index) {
+      if (index >= works.length) index = 0;
+      if (index < 0) index = works.length - 1;
+      currentIndex = index;
+
+      const work = works[currentIndex];
+      
+      // If apparel mode is on, switch back to artwork
+      if (apparelMode) {
+        toggleApparel();
+      }
+      
+      // Fade image
+      imgElement.classList.add('fade');
+
+      setTimeout(() => {
+        imgElement.src = work.file;
+        imgElement.alt = work.name;
+        workNameSpan.textContent = work.name;
+        workIndexSpan.textContent = (currentIndex + 1) + ' / ' + works.length;
+        
+        // Update modal content (so it's ready when opened)
+        modalWorkName.textContent = work.name;
+        modalWorkNumber.textContent = romanNumerals[currentIndex] || (currentIndex + 1);
+        modalStoryText.textContent = work.story;
+        
+        imgElement.classList.remove('fade');
+      }, 300);
+    }
+
+    // --- next / prev ---
+    function nextWork() {
+      const nextIndex = (currentIndex + 1) % works.length;
+      loadImage(nextIndex);
+    }
+    function prevWork() {
+      const prevIndex = (currentIndex - 1 + works.length) % works.length;
+      loadImage(prevIndex);
+    }
+
+    // --- save current image ---
+    function saveImage() {
+      const work = works[currentIndex];
+      const link = document.createElement('a');
+      
+      if (apparelMode) {
+        link.href = shirtMockup.src;
+        const filename = 'Symphony_of_Life_Apparel.jpg';
+        link.download = filename;
+      } else {
+        link.href = imgElement.src;
+        const filename = 'Symphony_of_Life_' + work.name.replace(/\s+/g, '_') + '.jpg';
+        link.download = filename;
+      }
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // --- toggle apparel ---
+    function toggleApparel() {
+      apparelMode = !apparelMode;
+      
+      if (apparelMode) {
+        // Show mockup, hide artwork
+        imgElement.style.display = 'none';
+        shirtMockup.classList.add('active');
+        shirtToggle.classList.add('active');
+        shirtToggle.innerHTML = '<span class="icon">◷</span> artwork';
+        shirtMockup.style.boxShadow = '0 0 80px rgba(201, 168, 76, 0.3), 0 0 160px rgba(201, 168, 76, 0.1)';
+        shirtMockup.style.border = '1px solid rgba(201, 168, 76, 0.15)';
+      } else {
+        // Show artwork, hide mockup
+        imgElement.style.display = 'block';
+        shirtMockup.classList.remove('active');
+        shirtToggle.classList.remove('active');
+        shirtToggle.innerHTML = '<span class="icon">◷</span> apparel';
+        shirtMockup.style.boxShadow = 'none';
+        shirtMockup.style.border = 'none';
+      }
+    }
+
+    // --- MODAL FUNCTIONS ---
+    function openModal() {
+      const work = works[currentIndex];
+      modalWorkName.textContent = work.name;
+      modalWorkNumber.textContent = romanNumerals[currentIndex] || (currentIndex + 1);
+      modalStoryText.textContent = work.story;
+      
+      modalOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // --- event listeners ---
+    controlsBar.addEventListener('click', nextWork);
+    controlsBar.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      nextWork();
+    });
+
+    shirtToggle.addEventListener('click', toggleApparel);
+    shirtToggle.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      toggleApparel();
+    });
+
+    storyBtn.addEventListener('click', openModal);
+    storyBtn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      openModal();
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    modalClose.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      closeModal();
+    });
+
+    // Close modal on overlay click (click outside content)
+    modalOverlay.addEventListener('click', function(e) {
+      if (e.target === modalOverlay) {
+        closeModal();
+      }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    // keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        nextWork();
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        prevWork();
+      }
+      if (e.key === ' ' || e.key === 'Space') {
+        e.preventDefault();
+        nextWork();
+      }
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        saveImage();
+      }
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        toggleApparel();
+      }
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        if (modalOverlay.classList.contains('open')) {
+          closeModal();
+        } else {
+          openModal();
+        }
+      }
+    });
+
+    // --- init ---
+    function init() {
+      const first = works[0];
+      imgElement.src = first.file;
+      imgElement.alt = first.name;
+      workNameSpan.textContent = first.name;
+      workIndexSpan.textContent = '1 / ' + works.length;
+      
+      // Pre-populate modal
+      modalWorkName.textContent = first.name;
+      modalWorkNumber.textContent = 'I';
+      modalStoryText.textContent = first.story;
+      
+      imgElement.classList.remove('fade');
+      imgElement.style.display = 'block';
+      apparelMode = false;
+      shirtToggle.classList.remove('active');
+      shirtToggle.innerHTML = '<span class="icon">◷</span> apparel';
+      shirtMockup.classList.remove('active');
+      shirtMockup.style.boxShadow = 'none';
+      shirtMockup.style.border = 'none';
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    window.nextWork = nextWork;
+    window.prevWork = prevWork;
+    window.saveImage = saveImage;
+    window.toggleApparel = toggleApparel;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+  })();
+</script>
+</body>
+</html>
