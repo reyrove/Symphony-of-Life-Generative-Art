@@ -8,6 +8,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" type="image/svg+xml" href="fav.svg">
+  
+  <!-- Preload GIFs for faster loading -->
+  <link rel="preload" as="image" href="sunset-serenade.gif">
+  <link rel="preload" as="image" href="whispers-of-the-world.gif">
+  
   <style>
     /* --- perfect reset --- */
     * {
@@ -90,6 +95,32 @@
       max-height: 100%;
     }
     
+    /* --- Loading Spinner for GIFs --- */
+    .loading-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(201,168,76,0.1);
+      border-top: 3px solid #c9a84c;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .loading-spinner.active {
+      display: block;
+    }
+    
+    @keyframes spin {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
     #slide-image {
       display: block;
       box-shadow: 0 0 80px rgba(0,0,0,0.9);
@@ -104,10 +135,17 @@
       transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease, border 0.5s ease;
       opacity: 1;
       border: none;
+      position: relative;
+      z-index: 1;
     }
+    
     #slide-image.fade {
       opacity: 0;
       transform: scale(0.97);
+    }
+    
+    #slide-image.loading {
+      opacity: 0.3;
     }
     
     /* --- SHIRT MOCKUP --- */
@@ -121,6 +159,8 @@
       border-radius: 2px;
       box-shadow: 0 0 80px rgba(0,0,0,0.9);
       transition: opacity 0.6s ease, transform 0.6s ease;
+      position: relative;
+      z-index: 1;
     }
     #shirt-mockup.active {
       display: block;
@@ -552,6 +592,7 @@
   <!-- IMAGE CONTAINER -->
   <div id="canvas-container">
     <div class="image-wrapper">
+      <div class="loading-spinner" id="loadingSpinner"></div>
       <img id="slide-image" src="" alt="p5.js artwork">
       <img id="shirt-mockup" src="Symphony-of-Life.jpg" alt="Symphony of Life on T-Shirt" />
     </div>
@@ -632,61 +673,73 @@
       { 
         name: 'Crooked Buildings', 
         file: 'crooked-buildings.jpg',
+        isGif: false,
         story: 'Amid the bustling crowd, I found solace in the charm of crooked buildings that seemed to speak a language of their own, a silent conversation with nature\'s hues. In the lonely corners, I discovered a canvas of colors, each shade telling a story, creating a unique melody in the symphony of urban life. This is made with random rectangles by p5.js.'
       },
       { 
         name: 'Sunset Serenade', 
         file: 'sunset-serenade.gif',
+        isGif: true,
         story: 'In the symphony of life, as the sun bids adieu, a sunset serenade, painting skies anew. Ocean waves whisper in a tranquil rhyme, calm waters mirror a love that transcends time. Memories linger, like echoes in the breeze, peaceful reflections beneath rustling trees. Thoughts, like leaves, gently fall and rise, in the quietude, where the heart often lies. In the canvas of silence, feelings unfold, a harmony of emotions, a story untold. Nature\'s embrace, a tranquil balm, as thoughts and feelings create a soothing calm. This is made with coding in p5js. First I made a pattern then exported it as an image. In next step I made a gif with noise function and used that image as a background of my gif.'
       },
       { 
         name: 'Tree\'s Silhouette', 
         file: 'trees-silhouette.jpg',
+        isGif: false,
         story: 'Random triangles, a geometric spree, a tree\'s silhouette, nature\'s decree. Colors intertwine, a vibrant ballet, in the canvas of life, what role do I play? Meaning of life, a story to unfold, in the fabric of existence, a tale is told. Long is the journey, a river\'s flow, amidst the questions, "Is this me?" may grow. Dreams paint skies, reality to rove, in the heart\'s landscape, a symphony of love. Amidst the branches, where stories gleam, in the dance of life, do we dare to dream? This is made by coding in p5js. At first I made a background with random triangles. Then exported it as an image. I made a tree with branch function and used the image as the background.'
       },
       { 
         name: 'Maya', 
         file: 'maya.jpg',
+        isGif: false,
         story: 'Maya, a wisp of a girl with eyes like moss, stood mesmerized by the ancient oak in her grandmother\'s garden. Its gnarled branches clawed at the sky, each wrinkle on its bark whispering tales of bygone seasons. "Life is like a tree," Grandma Nila rasped, her voice soft as leaves rustling. "We start as fragile seedlings, rooted in love and nurtured by care." Years danced by like flitting butterflies. Maya sprouted, her branches reaching for knowledge, her leaves unfurling with laughter and dreams. She weathered storms of doubt, shed tears like falling leaves, and basked in sunshine moments that bloomed like vibrant flowers. Through it all, her roots, the values Nila instilled, held her firm. One day, a storm raged, uprooting her dreams. Tears streamed down her face, mirroring the rain lashing the oak. But as the storm subsided, a ray of hope, like sunlight filtering through leaves, peeked through. The oak, though battered, stood tall, its resilience whispering strength. Maya found her own, her spirit rising like the morning mist. She grew taller, her branches laden with experiences, some sweet, some bitter. Like the oak, she offered shade to others, her leaves rustling with stories, her heart a haven for weary souls. Seasons changed, wrinkles etched her face, yet her eyes, like the oak\'s enduring core, sparkled with wisdom. One crisp autumn day, a young girl, eyes wide with wonder, stood beneath the oak, now Maya\'s. "Life is like a tree," Maya whispered, her voice a gentle breeze. "Remember, little one, even in winter, spring awaits." The girl smiled, understanding blooming in her eyes, as Maya, like the majestic oak, prepared for her final rest, knowing her essence, like falling leaves, would nourish the ground for new life to sprout. This is made by coding in p5js. I wrote four different functions with the names of branch1, branch2, branch3, branch 4. Then call them in draw function to generate several different random lines with different colors.'
       },
       { 
         name: 'Azure\'s Journey', 
         file: 'azures-journey.jpg',
+        isGif: false,
         story: 'Azure was unlike any other fish in the coral reef. While his scales shimmered the same vibrant blue as his brethren, his heart harbored a curious sadness. He loved the sea, its playful currents, the kaleidoscope of life that swirled around him, yet a melancholic undercurrent tugged at his soul. He\'d race with the clownfish, weave through forests of kelp, and chase shimmering schools of sardines. But amidst the joy, a strange yearning gnawed at him. He\'d stare longingly at the surface, the sun painting shimmering patterns on the water, a world beyond his grasp. One day, an old hermit crab, wise and wrinkled, noticed Azure\'s melancholy. "Little one," he rasped, "why the long face in such a vibrant sea?" Azure confessed his yearning, the feeling of being incomplete. The crab chuckled, a dry rasping sound. "The sea is vast, little fish, but it\'s not all there is. Look beyond the surface, and you might find the missing piece of your heart." Azure, fueled by newfound hope, practiced leaping higher, his powerful tail propelling him closer to the sun. One day, with a final burst, he broke through the water\'s surface. Gasping, he found himself in a world of dazzling light and unfamiliar sounds. He saw birds with wings of painted silk, felt the caress of warm air, and heard the gentle whisper of the wind. A tear rolled down his cheek, a tear of bittersweet joy. He wasn\'t meant for this world, yet the glimpse had filled a void he hadn\'t known existed. He returned to the sea, forever changed. His sadness remained, but it was now laced with acceptance and a newfound appreciation for the beauty of his own world, a world he now saw with a richer, fuller heart. Azure continued to swim, his scales flashing blue, a constant reminder of his journey, a testament to the beauty found not just in reaching for the unknown, but also in cherishing the world you already call home. This story of Azure, the blue fish with a melancholic heart, was brought to life using p5.js, a creative coding platform. Lines of code wove the vibrant coral reef, playful fish, and Azure\'s yearning gaze into a visual narrative of his journey. As Azure leaped through the code-crafted waves, his longing for the unseen world resonated with viewers. The p5.js canvas became a window into his emotions, showcasing the beauty and complexity of his inner world. Through this story, we are reminded that even within the limitations of our own realities, there is a universe of experiences waiting to be discovered. And sometimes, the most profound journeys begin with a single line of code. Created with p5.js: A language for creative coding.'
       },
       { 
         name: 'Silent Dance', 
         file: 'silent-dance.jpg',
+        isGif: false,
         story: 'In the heart of a sprawling meadow, stood a solitary oak, his branches reaching towards the heavens like gnarled fingers. Unlike his brethren, who whispered secrets to the wind and sheltered playful creatures, the oak stood alone, his heart heavy with an unnamable longing. Every evening, as the sun dipped below the horizon, the sky would transform into a breathtaking spectacle. Streaks of fiery orange, molten gold, and delicate rose would paint the canvas above, igniting a spark within the oak\'s ancient soul. He\'d stand transfixed, his leaves rustling in a silent serenade, yearning to touch the vibrant hues that danced beyond his reach. He dreamt of whispering sweet nothings to the clouds, of feeling the warmth of the setting sun kiss his bark. He imagined the sky, vast and ever-changing, mirroring the emotions that swirled within him – the fiery passion of a summer sunset, the melancholic blues of a twilight sky, the serene peace of a starlit night. One particularly fiery evening, as the sky blazed with an intensity that took his breath away, the oak dared to confess his love. He stretched his branches towards the heavens, his leaves trembling with the weight of his unspoken affection. "Oh, glorious sky," he whispered, his voice carried by the gentle breeze, "your beauty consumes me. Your ever-changing moods echo the depths of my soul. I yearn to be a part of your tapestry, to feel your warmth upon my bark." A hush fell over the meadow. The wind stilled, and the birdsong ceased. Then, as if in response, a single cloud detached itself from the fiery expanse, drifting towards the oak. It swirled around his branches, its touch cool and fleeting, yet filled with an undeniable tenderness. The oak trembled, a surge of joy coursing through his ancient roots. Though their love remained a silent dance, a connection had been forged between the lonely tree and his celestial beloved. He knew, in that moment, that even in solitude, one could find solace in the beauty of the world, and love could blossom in the most unexpected places. From that day on, the oak continued to watch the sky with a newfound appreciation. He no longer felt alone, for his heart was filled with the memory of the cloud\'s touch, a reminder of the love that transcended the boundaries of earth and sky. Made by p5.js. first I wrote a function for the background and exported it as an image. then, I made a tree with writing a branch function and used the image as a background.'
       },
       { 
         name: 'Whispers of the World', 
         file: 'whispers-of-the-world.gif',
+        isGif: true,
         story: 'The old woman sat by the window, the setting sun casting long shadows across her wrinkled face. A sigh escaped her lips, carrying with it a lifetime of memories and unspoken desires. "I wanna see you," she whispered, her voice barely audible. It wasn\'t about a physical presence, not anymore. She yearned for the warmth of laughter, the echo of shared dreams, the comfort of a hand in hers. She longed for the feeling of belonging, of being truly known and understood. She closed her eyes, picturing faces from the past, their smiles fading like photographs bleached by time. Some were lost to distance, others to the inevitable march of life. Yet, the ache in her heart remained, a testament to the connections that transcended physicality. A tear traced a path down her cheek, a silent tribute to what she had and what she had lost. But amidst the sadness, a spark flickered within her. The desire to see and feel wasn\'t about the past, but about the present. She looked at the vibrant colors of the sunset, a reminder of the beauty that still surrounded her. She listened to the chirping of crickets, a melody of life in the twilight. These small moments, these connections to the world, were enough. With newfound resolve, she wiped away her tears. "I can\'t see you," she whispered, her voice stronger now, "but I can feel you. You\'re in the warmth of the sun, the song of the birds, the laughter of children playing outside." She opened her eyes, gazing at the world with renewed appreciation. The feeling of isolation may not vanish entirely, but within it, she found a different kind of connection, a sense of belonging to something larger than herself. And that, she realized, was enough. This is a code art that made by coding in p5.js. background is an image that is created with some random circles. Also used text function for writing the text. With the help of p5.creatsloop library, I set up the canvas with createloop function to make a gif with noise radius of 0.3. then I drew some ellipses, rectangles with "for" loops with different colors. Finally exported it as a gif. P5.createloop Is a p5.jd Libra that Creates animation loops with noise and GIF exports in one line of code.'
       },
       { 
         name: 'Weavers of Destiny', 
         file: 'weavers-of-destiny.jpg',
+        isGif: false,
         story: 'Beneath the watchful gaze of a star-dusted night sky, two owls, Luna and Orion, perched on a tangled mess of brightly colored yarns. The moon, a luminous pearl, cast an ethereal glow, illuminating their purple feathers, usually hidden in the shadows of day. Luna, her eyes like molten gold, gazed up at Orion, his amber orbs reflecting the warmth of the moon. They weren\'t just owls; they were weavers of destiny, their every flight weaving threads of chance and fate into the tapestry of life. But tonight, their wings were still, their focus solely on each other. "The humans call this \'love,\'" Luna whispered, her voice soft as the rustle of leaves. Orion dipped his head, nuzzling his beak against hers. "It feels like a thousand sunsets woven into one." They had witnessed countless love stories unfold, guiding them with gentle nudges in the right direction, ensuring their paths intersected. But their own love was a different story, a forbidden melody woven into the fabric of existence, hidden from the very beings they guided. Luna traced a claw lightly across the vibrant yarn beneath them, each color representing an unknown future. "These threads, they hold countless possibilities," she sighed, a hint of longing tinged with fear in her voice. Sensing her unease, Orion nestled closer. "We are but threads in the grand tapestry, Luna. Our love may be unconventional, but it too is woven into the fabric of our existence." He pointed his beak towards a single, shimmering thread of silver that intertwined with their own. "This thread, Luna, it binds us together, defying all odds." Luna felt a surge of warmth bloom in her chest. Though their love was a secret melody, hidden from the world they shaped, it was a beautiful, unique harmony, woven into the very essence of their being. As the night deepened, they sat in comfortable silence, their love story a silent symphony played beneath the watchful gaze of the moon. They were not just weavers of destiny, but also threads in the grand tapestry, their love a testament to the unexpected beauty found amidst the complexities of fate. Made by coding in p5.js. I drew some bezier curves with different colors and same stroke weights with the help of p5.bezier library. Then I wrote a function for drawing owl. Then I called the function to draw to owls.'
       },
       { 
         name: 'Hexa\'s Legacy', 
         file: 'hexas-legacy.jpg',
+        isGif: false,
         story: 'In a world shrouded in cool, blue light, lived a lone inventor named Hexa. Their workshop hummed with the tireless whirring of gears and the gentle clinking of metal against metal. Hexa was obsessed with patterns, their keen eyes searching for order and beauty in the chaos of the world. One day, as the afternoon sun bathed the workshop in a golden glow, Hexa stumbled upon a peculiar discovery. They were tinkering with a contraption of gears and cogs, when a flash of inspiration struck. With a twist of a knob and a flick of a lever, the machine whirred to life, its metallic arms weaving a mesmerizing dance. It was a dance of perfect hexagons, interlocking and swirling in a never-ending cycle. Hexa watched in awe, captivated by the intricate pattern. The hexagons seemed to possess a life of their own, their vibrant colors shifting and changing with each revolution. They saw in the pattern a reflection of the universe, a tapestry of interconnected elements forming a grand, harmonious whole. From that day on, Hexa devoted themself to perfecting the machine, tirelessly experimenting with different colors and shapes. Soon, their workshop overflowed with hexagonal creations: shimmering mobiles, intricate sculptures, and mesmerizing tapestries. Each piece hummed with the same life force, a testament to the beauty and order that resided within the simplest of shapes. News of Hexa\'s creations spread far and wide. People from all corners of the world flocked to their workshop, drawn by the mesmerizing patterns. Hexa\'s hexagons became a symbol of hope and unity, reminding everyone that even in the face of chaos, beauty and order can prevail. And so, Hexa\'s legacy lived on, not in grand monuments or towering statues, but in the quiet hum of their workshop and the dazzling dance of their hexagons, casting a light of wonder and inspiration for generations to come. This is a hexagonal pattern that is made by coding in p5js. First, I wrote a motif class then use display to show every motif. I used vertex function to draw motif. In set up, I calculated the horizontal and vertical distances between motifs and the number of columns and rows for drawing pattern. Finally in draw function, I filled every odd and even rows and columns with different colors.'
       },
       { 
         name: 'Secret Labyrinth', 
         file: 'secret-labyrinth.jpg',
+        isGif: false,
         story: 'Ava squinted through the dense foliage, her heart hammering a frantic rhythm against her ribs. How long had she been lost? It felt like days, but more likely it was hours. Time seemed to stretch and warp in this primal wilderness, the endless green canopy filtering the sunlight into an emerald twilight. She had been so focused on the rare four-leaf clover, a symbol of luck in her grandmother\'s stories, that she hadn\'t noticed the sun begin its descent. Now, the once-familiar path was a forgotten memory. Panic gnawed at the edges of her mind, a cold serpent coiling tighter with every rustle of leaves. Exhausted, Ava sank down at the base of a moss-covered oak, its gnarled branches clawing at the sky like ancient fingers. Tears welled in her eyes, blurring the vibrant green around her. Despair threatened to consume her, but then she spotted it - a faint, circular pattern etched into the earth beside her. It was a ring of stones, weathered smooth by time, with a single clover, a perfect four-leafed one, nestled in the center. A jolt of adrenaline shot through her. Was this a sign? A message from her grandmother, a woman who had spent her childhood exploring these very woods? Emboldened, Ava traced the circle with her finger, a strange sense of calm washing over her. She stood up, a newfound determination etched on her face. The forest, once a menacing labyrinth, now seemed to hold the secrets to her escape. Following an instinct she couldn\'t explain, Ava started walking. She looked for repeating patterns, shapes etched on rocks, or clusters of wildflowers – anything that might hold a clue. The forest floor, a jumbled mess moments ago, began to reveal itself as a language waiting to be deciphered. As dusk settled, casting long shadows between the trees, Ava stumbled upon a familiar sight – a weathered wooden signpost pointing towards the direction of her village. Relief flooded her, warm and sweet. She had found her way back, not through the well-worn path, but through a hidden language whispered by the forest itself. The experience left an indelible mark on Ava. The forest, once a place of fear, became a place of wonder and respect. She learned that sometimes getting lost is the only way to truly find yourself, and that even in the heart of the wilderness, there can be guidance, if you know where to look. Made by coding in p5.js. I used vertex function to specify the vertex coordinates for lines then put it in beginShape. Also I rotated the scene with -90 degrees in both x & y directions. I used different colors for filling and stroke of my shape.'
       },
       { 
         name: 'Polytopia', 
         file: 'polytopia.jpg',
+        isGif: false,
         story: 'In the whimsical realm of Polytopia, where shapes ruled supreme, resided Pip, a circle unlike any other. Unlike his brethren content with simply rolling around, Pip yearned for a world brimming with fantastical forms, a world like the legendary realm of the Circularcus. Tales of the Circularcus spoke of a magnificent spectacle – a place where squares juggled spheres, triangles transformed into daring tightropes, and cones balanced precariously on the points of stars. Pip dreamt of witnessing such marvels, a dream that fueled his discontent with Polytopia\'s rigid uniformity. One starlit night, Pip stumbled upon a peculiar sight – a lone pentagon, its edges frayed and dusty. The pentagon, once a renowned acrobat from the Circularcus, had been exiled for attempting a shape-shifting routine deemed too unorthodox. Pip, mesmerized by the tales of the wondrous circus, hatched a daring plan. Together, they embarked on a perilous journey to the Circularcus. They traversed treacherous terrains of jagged hexagons and navigated through valleys carved by sharp trapezoids. Pip, with his smooth rolling ability, proved adept at navigating treacherous slopes, while the pentagon, despite its injury, used its remaining sharp edge to cut through obstacles. Finally, after weeks of struggle, they reached the dazzling entrance of the Circularcus. A kaleidoscope of shapes greeted them – trapezoids twirled through hoops, cones performed daring balancing acts, and cubes juggled spheres in a mesmerizing display. However, a shadow loomed over the joyous spectacle. The Ringmaster, a tyrannical dodecagon, enforced a strict code of conformity, outlawing any shape-shifting performances. Inspired by the pentagon\'s bravery and his own yearning for a world of creative expression, Pip decided to defy the Ringmaster. He rolled into the center ring, captivating the audience with his mesmerizing spins and breathtaking leaps. The pentagon, its spirit rekindled, joined Pip, its remaining edge morphing into a dazzling array of shapes, defying the rigid rules of the Circularcus. The audience, enthralled by the duo\'s performance, erupted in a thunderous applause. The Ringmaster, however, was enraged. But before he could banish them, the cheers of the crowd grew louder. Inspired by Pip and the pentagon\'s courage, other performers began incorporating shape-shifting elements into their acts, transforming the once-rigid spectacle into a vibrant display of creativity. Overwhelmed by the outpouring of support, the Ringmaster reluctantly conceded. The Circularcus, once a place of stifling uniformity, embraced the joy of transformation. Pip, the little circle with a big dream, had not only witnessed the wonders of the Circularcus but had also inspired a revolution, proving that even in a world of shapes, there was room for a touch of magic. Made by coding in p5.js. I created a canvas with size 600 × 600 pixels. I created a class that takes 3 arguments that represent the position of my shapes. also I wrote a function for drawing random shapes such as rectangles, triangles and quads with random colors on canvas.'
       },
       { 
         name: 'Remy and Ollie', 
         file: 'remy-and-ollie.jpg',
+        isGif: false,
         story: 'In the ever-flowing river of the bloodstream, two blood cells, Remy (red) and Ollie (orange), bumped shoulders amidst the throng. "Easy there, newbie," Remy chuckled, a veteran with hundreds of trips under his flexible membrane. Ollie, fresh from the bone marrow, sputtered, "Whoa, this is some current! Where are we even headed?" Remy grinned, "Right ventricle, first. Gotta pick up some fresh oxygen from the lungs." Their journey was a wild ride. They squeezed through narrow capillaries, dodged white blood cell sentries, and even navigated a particularly aggressive sneeze that sent them tumbling. As they approached the lungs, however, Ollie noticed a detour. A smaller vein branched off, leading towards a dimly lit area. "Where\'s that going?" Ollie asked, his orange hue flickering with curiosity. "That, my friend," Remy explained, his voice a touch hushed, "is the Spleen Graveyard. Old, worn-out cells get recycled there." A shiver ran through Ollie. He\'d heard whispers about the Spleen, a place of no return. Suddenly, a jolt. A large white blood cell, patrolling the area, bumped into them, sending them careening off course. They landed, teetering on the edge of the narrow vein leading to the Spleen. Remy reacted instinctively. With a powerful push, he propelled Ollie back towards the main stream. "Go! I\'ll hold him off!" Panic seized Ollie. He wanted to stay, but the current was strong, pulling him away. He watched in horror as Remy was swept into the dark vein, a lone red dot disappearing into the gloom. Guilt gnawed at Ollie as he continued his journey. He delivered his oxygen cargo, the feeling hollow. He missed Remy\'s gruff humor and the camaraderie of their short time together. Days turned into weeks. Stronger, wiser now, Ollie found himself near the Spleen again. This time, something was different. A faint red glow emanated from within. Hesitantly, he squeezed through a small opening. There, in the heart of the Spleen, he saw Remy. Not worn out, but transformed. He was a macrophage now, a powerful white blood cell, engulfing harmful bacteria. "Remy?" Ollie stammered. Remy, his voice deeper now, chuckled. "Seems the Spleen needed a little extra muscle. Guess my near miss gave me a new purpose." Relief washed over Ollie. He understood now. The Spleen wasn\'t just a graveyard; it was a place of transformation, where even the seemingly expendable could find a new way to serve the body. From then on, Ollie carried the memory of his friend. He knew their journey, though brief, had a deeper meaning. Every red blood cell, no matter how young or seemingly insignificant, held the potential for extraordinary service within the grand symphony of life. Made by coding in p5.js. the code creates a branching tree-like structure with red ellipses at the branching points. The use of recursion (calling the functions within themselves) and random rotations create a unique and organic appearance.'
       }
     ];
@@ -697,9 +750,11 @@
     // --- state ---
     let currentIndex = 0;
     let apparelMode = false;
+    let isLoading = false;
     
     const imgElement = document.getElementById('slide-image');
     const shirtMockup = document.getElementById('shirt-mockup');
+    const loadingSpinner = document.getElementById('loadingSpinner');
     const workNameSpan = document.getElementById('workName');
     const workIndexSpan = document.getElementById('workIndex');
     const controlsBar = document.getElementById('controlsBar');
@@ -713,8 +768,9 @@
     const modalWorkNumber = document.getElementById('modalWorkNumber');
     const modalStoryText = document.getElementById('modalStoryText');
 
-    // --- load image with fade ---
+    // --- load image with fade and loading spinner ---
     function loadImage(index) {
+      if (isLoading) return;
       if (index >= works.length) index = 0;
       if (index < 0) index = works.length - 1;
       currentIndex = index;
@@ -726,10 +782,18 @@
         toggleApparel();
       }
       
+      // Show loading spinner for GIFs
+      if (work.isGif) {
+        loadingSpinner.classList.add('active');
+        imgElement.classList.add('loading');
+        isLoading = true;
+      }
+      
       // Fade image
       imgElement.classList.add('fade');
 
       setTimeout(() => {
+        // Set the image source
         imgElement.src = work.file;
         imgElement.alt = work.name;
         workNameSpan.textContent = work.name;
@@ -740,16 +804,40 @@
         modalWorkNumber.textContent = romanNumerals[currentIndex] || (currentIndex + 1);
         modalStoryText.textContent = work.story;
         
-        imgElement.classList.remove('fade');
+        // For GIFs, wait for load event
+        if (work.isGif) {
+          imgElement.onload = function() {
+            loadingSpinner.classList.remove('active');
+            imgElement.classList.remove('loading');
+            imgElement.classList.remove('fade');
+            isLoading = false;
+          };
+          // Fallback: if GIF doesn't trigger onload, hide spinner after 3 seconds
+          setTimeout(function() {
+            if (isLoading) {
+              loadingSpinner.classList.remove('active');
+              imgElement.classList.remove('loading');
+              imgElement.classList.remove('fade');
+              isLoading = false;
+            }
+          }, 3000);
+        } else {
+          // For static images, just fade in
+          setTimeout(() => {
+            imgElement.classList.remove('fade');
+          }, 100);
+        }
       }, 300);
     }
 
     // --- next / prev ---
     function nextWork() {
+      if (isLoading) return;
       const nextIndex = (currentIndex + 1) % works.length;
       loadImage(nextIndex);
     }
     function prevWork() {
+      if (isLoading) return;
       const prevIndex = (currentIndex - 1 + works.length) % works.length;
       loadImage(prevIndex);
     }
@@ -765,7 +853,7 @@
         link.download = filename;
       } else {
         link.href = imgElement.src;
-        const filename = 'Symphony_of_Life_' + work.name.replace(/\s+/g, '_') + '.jpg';
+        const filename = 'Symphony_of_Life_' + work.name.replace(/\s+/g, '_') + (work.isGif ? '.gif' : '.jpg');
         link.download = filename;
       }
       
@@ -854,6 +942,8 @@
 
     // keyboard shortcuts
     document.addEventListener('keydown', function(e) {
+      if (isLoading) return;
+      
       if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
         nextWork();
@@ -900,11 +990,13 @@
       imgElement.classList.remove('fade');
       imgElement.style.display = 'block';
       apparelMode = false;
+      isLoading = false;
       shirtToggle.classList.remove('active');
       shirtToggle.innerHTML = '<span class="icon">◷</span> apparel';
       shirtMockup.classList.remove('active');
       shirtMockup.style.boxShadow = 'none';
       shirtMockup.style.border = 'none';
+      loadingSpinner.classList.remove('active');
     }
 
     if (document.readyState === 'loading') {
